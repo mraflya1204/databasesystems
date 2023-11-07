@@ -1,0 +1,118 @@
+CREATE TABLE kelompokfilm(
+	jenis varchar(255) PRIMARY KEY,
+	harga_sewa int
+);
+
+CREATE TABLE film(
+	kode_film char(3) PRIMARY KEY,
+	jenis varchar(255),
+	FOREIGN KEY (jenis) REFERENCES kelompokfilm(jenis),
+	judul varchar(255),
+	jml_keping int,
+	jml_film int
+);
+
+CREATE TABLE customer(
+	no_identitas char(3) PRIMARY KEY,
+	jenis_identitas char(3),
+	nama varchar(255),
+	alamat varchar(255)
+);
+
+CREATE TABLE menyewa(
+	kode_sewa char(5) PRIMARY KEY,
+	no_identitas char(3),
+	FOREIGN KEY (no_identitas) REFERENCES customer(no_identitas),
+	tgl_sewa date,
+	tot_film int,
+	tgl_kembali date,
+	tot_hrg int,
+	denda int
+);
+
+CREATE TABLE detailmenyewa(
+	id_detailmenyewa char(5) PRIMARY KEY,
+	kode_sewa char(5),
+	FOREIGN KEY (kode_sewa) REFERENCES menyewa(kode_sewa),
+	kode_film char(3),
+	FOREIGN KEY (kode_film) REFERENCES film(kode_film)
+);
+
+INSERT INTO kelompokfilm(jenis, harga_sewa)
+VALUES
+('action', 3000),
+('drama', 3500),
+('horor', 3000);
+
+INSERT INTO customer(no_identitas, jenis_identitas, nama, alamat)
+VALUES
+('001', 'SIM', 'Andi', 'pontianak'),
+('002', 'SIM', 'Budi', 'pontianak');
+
+INSERT INTO film(kode_film, jenis, judul, jml_keping, jml_film)
+VALUES
+('A01', 'action', 'Spiderman', 2, 3),
+('A02', 'action', 'Spiderman 2', 2, 5),
+('D01', 'drama', 'Love Story', 2, 3),
+('H01', 'horor', 'Evil Death', 2, 2);
+
+INSERT INTO menyewa(kode_sewa, no_identitas, tgl_sewa, tot_film, tgl_kembali, tot_hrg, denda)
+VALUES
+('S0001', '001', '01/01/2007', 2, '02/01/2007', 6000, 0),
+('S0002', '002', '03/01/2007', 1, '03/01/2007', 3500, 0),
+('S0003', '001', '06/01/2007', 3, '08/01/2007', 9500, 0);
+
+
+INSERT INTO detailmenyewa(id_detailmenyewa, kode_sewa, kode_film)
+VALUES
+('D0001','S0001', 'A01'),
+('D0002', 'S0001', 'A02'),
+('D0003', 'S0002', 'D01'),
+('D0004', 'S0003', 'A02'),
+('D0005', 'S0003', 'D01'),
+('D0006', 'S0003', 'H01');
+
+INSERT INTO kelompokfilm(jenis, harga_sewa)
+VALUES
+('komedi', 5000);
+
+INSERT INTO film(kode_film, jenis, judul, jml_keping, jml_film)
+VALUES
+('K01', 'komedi', 'Kapan Kawin', 10, 2),
+('K02', 'komedi', 'Takut Kawin', 6, 3),
+('D02', 'drama', 'Ayat Ayat Cinta', 8, 3),
+('D03', 'drama', 'Tiga Doa Tiga Cinta', 5, 2),
+('H02', 'horor', 'Resident Evil', 7, 4);
+
+UPDATE kelompokfilm 
+SET harga_sewa = harga_sewa*10;
+
+SELECT kode_film, judul
+FROM film
+WHERE jenis = 'horor' OR jenis = 'drama';
+
+SELECT COUNT (kode_sewa)
+FROM detailmenyewa
+WHERE kode_sewa = 'S0003';
+
+SELECT no_identitas, tgl_sewa, tot_film
+FROM menyewa
+WHERE tot_film = (SELECT MIN(tot_film) FROM menyewa);
+
+SELECT customer.nama, customer.alamat
+FROM customer
+JOIN menyewa ON customer.no_identitas = menyewa.no_identitas
+WHERE menyewa.tgl_kembali < '2007-01-05';
+
+SELECT menyewa.no_identitas, film.judul
+FROM menyewa
+INNER JOIN detailmenyewa ON menyewa.kode_sewa = detailmenyewa.kode_sewa
+INNER JOIN film ON detailmenyewa.kode_film = film.kode_film
+WHERE film.judul LIKE '%S%';
+
+SELECT customer.nama
+FROM customer
+INNER JOIN menyewa ON customer.no_identitas = menyewa.no_identitas
+INNER JOIN detailmenyewa ON menyewa.kode_sewa = detailmenyewa.kode_sewa
+INNER JOIN film ON detailmenyewa.kode_film = film.kode_film
+WHERE film.jenis = 'drama';
